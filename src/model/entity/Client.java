@@ -24,6 +24,15 @@ public class Client implements Serializable,Comparable<Client> {
 	}
 
 	/**
+	 * @param id
+	 * @param name
+	 */
+	public Client(Integer id, String name) {
+		this.id = id;
+		this.name = name;
+	}
+
+	/**
 	 * @return the id
 	 */
 	public Integer getId() {

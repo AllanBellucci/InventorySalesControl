@@ -18,6 +18,7 @@ import javafx.scene.control.Alert.AlertType;
 import javafx.scene.control.MenuItem;
 import javafx.scene.control.ScrollPane;
 import javafx.scene.layout.VBox;
+import model.services.ClientService;
 
 /**
  * @author ALLAN
@@ -58,6 +59,10 @@ public class MainViewController implements Initializable {
 			mainVBox.getChildren().clear();
 			mainVBox.getChildren().add(mainMenu);
 			mainVBox.getChildren().addAll(newVbox.getChildren());
+			
+			ClientListController clientController = loader.getController();
+			clientController.setClientService(new ClientService());
+			clientController.updateTableView();
 			
 		} catch (IOException e) {
 			Alerts.showAlert("IOExceptions", "Error loading view", e.getMessage(), AlertType.ERROR);
