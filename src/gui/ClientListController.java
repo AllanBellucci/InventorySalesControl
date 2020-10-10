@@ -6,9 +6,11 @@ package gui;
 import java.io.IOException;
 import java.net.URL;
 import java.util.List;
+import java.util.Optional;
 import java.util.ResourceBundle;
 
 import application.Main;
+import db.DBException;
 import gui.listeners.DataChangeListener;
 import gui.util.Alerts;
 import gui.util.Utils;
@@ -22,6 +24,7 @@ import javafx.fxml.Initializable;
 import javafx.scene.Scene;
 import javafx.scene.control.Alert.AlertType;
 import javafx.scene.control.Button;
+import javafx.scene.control.ButtonType;
 import javafx.scene.control.TableCell;
 import javafx.scene.control.TableColumn;
 import javafx.scene.control.TableView;
@@ -40,7 +43,7 @@ import model.services.ClientService;
  * @author ALLAN
  *
  */
-public class ClientListController implements Initializable,DataChangeListener {
+public class ClientListController implements Initializable, DataChangeListener {
 
 	private ClientService clientService;
 
@@ -54,9 +57,12 @@ public class ClientListController implements Initializable,DataChangeListener {
 
 	@FXML
 	private TableColumn<Client, String> tableColunName;
-	
+
 	@FXML
 	private TableColumn<Client, Client> tableColunEdit;
+
+	@FXML
+	private TableColumn<Client, Client> tableColunRemove;
 
 	@FXML
 	private Button btnNew;
@@ -65,7 +71,7 @@ public class ClientListController implements Initializable,DataChangeListener {
 	public void onBtnNewAction(ActionEvent event) {
 		Stage parentStage = Utils.currentStage(event);
 		Client client = new Client();
-		createDialogForm(client,"/gui/ClientForm.fxml", parentStage);
+		createDialogForm(client, "/gui/ClientForm.fxml", parentStage);
 	}
 
 	public ClientListController() {
@@ -80,6 +86,7 @@ public class ClientListController implements Initializable,DataChangeListener {
 		obsList = FXCollections.observableArrayList(list);
 		tableViewClient.setItems(obsList);
 		initEditButtons();
+		initRemoveButtons();
 	}
 
 	/**
@@ -102,17 +109,17 @@ public class ClientListController implements Initializable,DataChangeListener {
 		tableViewClient.prefHeightProperty().bind(stage.heightProperty());
 	}
 
-	private void createDialogForm(Client client, String absoluteName,Stage parentStage) {
+	private void createDialogForm(Client client, String absoluteName, Stage parentStage) {
 		try {
 			FXMLLoader loader = new FXMLLoader(getClass().getResource(absoluteName));
 			Pane pane = loader.load();
-			
+
 			ClientFormController clientController = loader.getController();
 			clientController.setClient(client);
 			clientController.setClientService(new ClientService());
 			clientController.subscribeDataChangeListener(this);
 			clientController.updateDataForm();
-			
+
 			Stage dialogStage = new Stage();
 			dialogStage.setTitle("Enter Client Data");
 			dialogStage.setScene(new Scene(pane));
@@ -120,7 +127,7 @@ public class ClientListController implements Initializable,DataChangeListener {
 			dialogStage.initOwner(parentStage);
 			dialogStage.initModality(Modality.WINDOW_MODAL);
 			dialogStage.showAndWait();
-			
+
 		} catch (IOException e) {
 			Alerts.showAlert("IOException", null, e.getMessage(), AlertType.ERROR);
 		}
@@ -129,29 +136,64 @@ public class ClientListController implements Initializable,DataChangeListener {
 	@Override
 	public void onDataChanged() {
 		updateTableView();
-		
+
 	}
-	
-	
+
 	private void initEditButtons() {
 		tableColunEdit.setCellValueFactory(param -> new ReadOnlyObjectWrapper<>(param.getValue()));
-		tableColunEdit.setCellFactory(param -> new TableCell<Client, Client>(){
+		tableColunEdit.setCellFactory(param -> new TableCell<Client, Client>() {
 			private final Button button = new Button("Edit");
-		
+
 			@Override
 			protected void updateItem(Client client, boolean empty) {
 				super.updateItem(client, empty);
-				if(client==null) {
+				if (client == null) {
 					setGraphic(null);
 					return;
 				}
-				
+
 				setGraphic(button);
-				button.setOnAction(event -> createDialogForm(client, "/gui/ClientForm.fxml", Utils.currentStage(event)));
+				button.setOnAction(
+						event -> createDialogForm(client, "/gui/ClientForm.fxml", Utils.currentStage(event)));
 			}
-			
+
 		});
 	}
-	
-	
+
+	private void initRemoveButtons() {
+		tableColunRemove.setCellValueFactory(param -> new ReadOnlyObjectWrapper<>(param.getValue()));
+		tableColunRemove.setCellFactory(param -> new TableCell<Client, Client>() {
+			private final Button button = new Button("Remove");
+
+			@Override
+			protected void updateItem(Client client, boolean empty) {
+				super.updateItem(client, empty);
+				if (client == null) {
+					setGraphic(null);
+					return;
+				}
+
+				setGraphic(button);
+				button.setOnAction(event -> removeEntity(client));
+			}
+
+		});
+	}
+
+	private void removeEntity(Client client) {
+		Optional<ButtonType> result = Alerts.showConfirmation("Confirmation", "Are you sure to delete?");
+		if (result.get() == ButtonType.OK) {
+			if (clientService == null) {
+				throw new IllegalArgumentException("Service was null");
+			}
+			try {
+				clientService.remove(client);
+				updateTableView();
+			} catch (DBException e) {
+				Alerts.showAlert("Error removing object", null, e.getMessage(), AlertType.ERROR);
+			}
+
+		}
+	}
+
 }

@@ -26,11 +26,14 @@ public class ClientService {
 	}
 
 	public void saveOrUpdate(Client client) {
-		if(client.getId()==null || client.getId()==0 ) {
+		if (client.getId() == null || client.getId() == 0) {
 			clientDao.insert(client);
-		}else {
+		} else {
 			clientDao.update(client);
 		}
-		
+	}
+	
+	public void remove(Client client) {
+		clientDao.deleteById(client.getId());
 	}
 }
