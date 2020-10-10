@@ -6,6 +6,7 @@ package gui;
 import java.io.IOException;
 import java.net.URL;
 import java.util.ResourceBundle;
+import java.util.function.Consumer;
 
 import application.Main;
 import gui.util.Alerts;
@@ -32,47 +33,49 @@ public class MainViewController implements Initializable {
 	private MenuItem product;
 	@FXML
 	private MenuItem about;
-	
+
 	@FXML
 	public void onMenuItemClientAction() {
-		loadView("/gui/ClientList.fxml");
+		loadView("/gui/ClientList.fxml", (ClientListController controller) -> {
+			controller.setClientService(new ClientService());
+			controller.updateTableView();
+		});
 	}
-	
+
 	@FXML
 	public void onMenuItemProductAction() {
 		System.out.println("Product");
 	}
-	
+
 	@FXML
 	public void onMenuItemAboutAction() {
-		loadView("/gui/About.fxml");
+		loadView("/gui/About.fxml",(x) -> {
+		});
 	}
-	
-	private synchronized void loadView(String absoluteName) {
-		
+
+	private synchronized <T> void loadView(String absoluteName, Consumer<T> initializingAction) {
+
 		try {
 			FXMLLoader loader = new FXMLLoader(getClass().getResource(absoluteName));
 			VBox newVbox = loader.load();
 			Scene mainScene = Main.getMainscene();
-			VBox mainVBox = (VBox)((ScrollPane) mainScene.getRoot()).getContent(); 
+			VBox mainVBox = (VBox) ((ScrollPane) mainScene.getRoot()).getContent();
 			Node mainMenu = mainVBox.getChildren().get(0);
 			mainVBox.getChildren().clear();
 			mainVBox.getChildren().add(mainMenu);
 			mainVBox.getChildren().addAll(newVbox.getChildren());
-			
-			ClientListController clientController = loader.getController();
-			clientController.setClientService(new ClientService());
-			clientController.updateTableView();
-			
+
+			T controller = loader.getController();
+			initializingAction.accept(controller);
+
 		} catch (IOException e) {
 			Alerts.showAlert("IOExceptions", "Error loading view", e.getMessage(), AlertType.ERROR);
 		}
 	}
-	
-	
+
 	@Override
 	public void initialize(URL url, ResourceBundle rb) {
-				
+
 	}
 
 }

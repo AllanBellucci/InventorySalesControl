@@ -7,16 +7,16 @@ import javafx.scene.control.ScrollPane;
 import javafx.stage.Stage;
 
 public class Main extends Application {
-	
+
 	private static Scene mainscene;
-	
+
 	@Override
 	public void start(Stage primaryStage) {
 		try {
 			FXMLLoader loader = new FXMLLoader(getClass().getResource("/gui/MainView.fxml"));
-			ScrollPane scrollpane  = loader.load();
+			ScrollPane scrollpane = loader.load();
 			scrollpane.setFitToHeight(true);
-			scrollpane.setFitToWidth(true);			
+			scrollpane.setFitToWidth(true);
 			mainscene = new Scene(scrollpane);
 			primaryStage.setScene(mainscene);
 			primaryStage.setTitle("APP");

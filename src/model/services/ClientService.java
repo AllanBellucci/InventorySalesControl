@@ -3,9 +3,10 @@
  */
 package model.services;
 
-import java.util.ArrayList;
 import java.util.List;
 
+import model.dao.ClientDao;
+import model.dao.DaoFactory;
 import model.entity.Client;
 
 /**
@@ -14,18 +15,22 @@ import model.entity.Client;
  */
 public class ClientService {
 
+	private ClientDao clientDao = DaoFactory.createClientDao();
+
 	public ClientService() {
 	}
 
 	public List<Client> findAll() {
 
-		List<Client> list = new ArrayList<Client>();
-		list.add(new Client(1,"Allan"));
-		list.add(new Client(2,"Cris"));
-		list.add(new Client(3,"Gabriel"));
-		list.add(new Client(3,"Lais"));
-		
-		return list;
+		return clientDao.findAll();
 	}
 
+	public void saveOrUpdate(Client client) {
+		if(client.getId()==null || client.getId()==0 ) {
+			clientDao.insert(client);
+		}else {
+			clientDao.update(client);
+		}
+		
+	}
 }
